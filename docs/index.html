@@ -2,10 +2,12 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<meta name="attendance-api" content="">
 <title>课堂签到管理</title>
-<link rel="stylesheet" href="./style.css">
-<script src="./app.js" defer></script>
+<link rel="stylesheet" href="./style.css?v=2">
+<script src="./app.js?v=2" defer></script>
 </head>
 <body>
 <main>
@@ -14,7 +16,12 @@
   <div id="mode" hidden></div>
   <section class="panel" aria-label="课次选择">
     <label>日期<select id="date"></select></label>
-    <label>课次<select id="lesson"></select></label>
+    <label>课次
+      <span class="course-picker">
+        <select id="lesson"></select>
+        <span id="selected-course" aria-hidden="true"></span>
+      </span>
+    </label>
   </section>
   <section class="attendance" aria-labelledby="roster-title">
     <div class="heading"><h2 id="roster-title">签到名单</h2><p id="counts"></p></div>

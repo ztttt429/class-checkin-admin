@@ -4,7 +4,18 @@ const lesson = get('lesson');
 const roster = get('roster');
 const status = get('feedback');
 const refresh = get('refresh');
-const demo = !['127.0.0.1', 'localhost'].includes(location.hostname);
+const local = ['127.0.0.1', 'localhost'].includes(location.hostname);
+const endpoint = document.querySelector('meta[name="attendance-api"]')?.content;
+const keyFromLink = new URLSearchParams(location.hash.slice(1)).get('key');
+let accessKey = keyFromLink;
+if (!local) {
+  try {
+    if (keyFromLink) sessionStorage.setItem('checkin-admin-key', keyFromLink);
+    else accessKey = sessionStorage.getItem('checkin-admin-key');
+  } catch {}
+  if (keyFromLink) history.replaceState(null, '', location.pathname + location.search);
+}
+const demo = !local && !accessKey;
 let matrix;
 let pending = false;
 const today = new Intl.DateTimeFormat('sv-SE', {timeZone: 'Asia/Shanghai'}).format();
@@ -23,9 +34,17 @@ function sample() {
 }
 
 async function api(input) {
-  const response = await fetch('/api/attendance', input ? {
-    method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(input),
-  } : {cache: 'no-store'});
+  if (!local && !endpoint) throw new Error('腾讯云后端还未连接。');
+  const headers = new Headers();
+  if (!local) headers.set('Authorization', 'Bearer ' + accessKey);
+  if (input) headers.set('Content-Type', 'application/json');
+  const response = await fetch(local ? '/api/attendance' : endpoint, {
+    method: input ? 'POST' : 'GET',
+    headers,
+    body: input ? JSON.stringify(input) : undefined,
+    cache: 'no-store',
+    redirect: 'error',
+  });
   const result = await response.json();
   if (!response.ok) throw new Error(result.error ?? '腾讯表格请求失败。');
   return result;
@@ -38,6 +57,7 @@ function select(element, list, preferred) {
 
 function showRoster() {
   const current = matrix?.lessons.find(item => item.id === lesson.value);
+  get('selected-course').textContent = lesson.selectedOptions[0]?.textContent ?? '—';
   roster.replaceChildren();
   if (!current) {
     get('counts').textContent = '';
@@ -68,7 +88,7 @@ function showRoster() {
         if (!demo) await api({lessonId: current.id, name: person.name, signed});
         person.signed = signed;
         showRoster();
-        [...roster.children].find(tile => tile.firstChild?.textContent === person.name)?.focus();
+        [...roster.children].find(tile => tile.firstChild?.textContent === person.name)?.focus({preventScroll: true});
         message(demo ? '' : '已同步到腾讯表格');
       } catch (error) {
         message(error.message, true);

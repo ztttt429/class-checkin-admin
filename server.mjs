@@ -19,7 +19,8 @@ function send(response, status, body, contentType = 'application/json; charset=u
 }
 
 createServer(async (request, response) => {
-  const {url, method, headers} = request;
+  const {method, headers} = request;
+  const url = request.url.split('?')[0];
   if (headers.host !== host + ':' + port || (headers.origin && headers.origin !== origin)) {
     return send(response, 403, {error: '请从本机管理页面打开。'});
   }
