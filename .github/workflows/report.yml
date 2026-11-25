@@ -9,6 +9,9 @@ on:
         description: 写入缺勤表
         type: boolean
         default: false
+      as_of:
+        description: 预演时间（可选，ISO 8601）
+        type: string
 permissions:
   contents: read
 concurrency:
@@ -24,6 +27,7 @@ jobs:
       DESTINATION_LINK_ID: ${{ secrets.DESTINATION_LINK_ID }}
       REPORT_START_DATE: ${{ vars.REPORT_START_DATE }}
       APPLY: ${{ github.event_name == 'schedule' || inputs.apply }}
+      AS_OF: ${{ inputs.as_of }}
     steps:
       - uses: actions/checkout@v4
       - name: 同步科算班缺勤登记
@@ -32,5 +36,5 @@ jobs:
           if [[ "$APPLY" == "true" ]]; then
             node report.mjs
           else
-            node report.mjs --dry-run
+            node report.mjs --dry-run "$AS_OF"
           fi
