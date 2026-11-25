@@ -1,0 +1,37 @@
+name: 每日缺勤上报
+on:
+  schedule:
+    - cron: '0 12 * * *'
+    - cron: '17 12 * * *'
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: 写入缺勤表
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: attendance-report
+  cancel-in-progress: false
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      TENCENT_DOCS_CONFIG: ${{ secrets.TENCENT_DOCS_CONFIG }}
+      SOURCE_LINK_ID: ${{ secrets.SOURCE_LINK_ID }}
+      DESTINATION_LINK_ID: ${{ secrets.DESTINATION_LINK_ID }}
+      REPORT_START_DATE: ${{ vars.REPORT_START_DATE }}
+      APPLY: ${{ github.event_name == 'schedule' || inputs.apply }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: 同步科算班缺勤登记
+        shell: bash
+        run: |
+          if [[ "$APPLY" == "true" ]]; then
+            node report.mjs
+          else
+            node report.mjs --dry-run
+          fi
+

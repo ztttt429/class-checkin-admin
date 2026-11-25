@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>课堂签到管理</title>
+<link rel="stylesheet" href="./style.css">
+<script src="./app.js" defer></script>
+</head>
+<body>
+<main>
+  <header><div class="brand"><span aria-hidden="true">✓</span> 科学计算班</div><button id="refresh" type="button">刷新表格</button></header>
+  <h1>课堂签到管理</h1>
+  <div id="mode" hidden></div>
+  <section class="panel" aria-label="课次选择">
+    <label>日期<select id="date"></select></label>
+    <label>课次<select id="lesson"></select></label>
+  </section>
+  <section class="attendance" aria-labelledby="roster-title">
+    <div class="heading"><h2 id="roster-title">签到名单</h2><p id="counts"></p></div>
+    <p id="feedback" role="status" aria-live="polite"></p>
+    <div id="roster"></div>
+  </section>
+</main>
+</body>
+</html>
