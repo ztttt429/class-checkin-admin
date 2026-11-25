@@ -158,10 +158,7 @@ export async function reconcile(client, {start, days = 3, now = Date.now(), dryR
       if (!automatic.has(key)) automatic.set(key, []);
       automatic.get(key).push(recordID);
     } else {
-      const timestamp = Number(values['日期']);
-      if (timestamp > 0 && Number.isFinite(timestamp)) {
-        manual.add(JSON.stringify([day(timestamp), plain(values['课程名称']), plain(values['学生姓名'])]));
-      }
+      if (date && course && student) manual.add(JSON.stringify([date, course, student]));
     }
   }
   const add = [];
@@ -213,7 +210,3 @@ export async function client() {
   }
   return tencent(config);
 }
-
-
-
-

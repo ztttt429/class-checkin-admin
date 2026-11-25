@@ -34,4 +34,3 @@ jobs:
           else
             node report.mjs --dry-run
           fi
-
