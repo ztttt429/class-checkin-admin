@@ -15,6 +15,8 @@ select { width: 100%; margin-top: 5px; padding: 9px; }
 button { cursor: pointer; }
 button:focus-visible, select:focus-visible { outline: 3px solid #2d8868; outline-offset: 3px; }
 button:disabled { cursor: wait; }
+#sign-all { min-height: 44px; padding: 7px 12px; font-size: .9rem; font-weight: 700; color: white; background: #26644f; white-space: nowrap; }
+#sign-all:disabled { opacity: .55; cursor: default; }
 #refresh { padding: 7px 12px; font-size: .85rem; }
 #mode { background: #fff5d7; padding: 10px 14px; border-radius: 10px; margin-bottom: 15px; color: #654d19; font-size: .9rem; }
 .attendance { margin-top: 29px; }

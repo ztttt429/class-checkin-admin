@@ -4,6 +4,7 @@ const lesson = get('lesson');
 const roster = get('roster');
 const status = get('feedback');
 const refresh = get('refresh');
+const signAll = get('sign-all');
 const local = ['127.0.0.1', 'localhost'].includes(location.hostname);
 const endpoint = document.querySelector('meta[name="attendance-api"]')?.content;
 const keyFromLink = new URLSearchParams(location.hash.slice(1)).get('key');
@@ -55,8 +56,27 @@ function select(element, list, preferred) {
   if (list.some(([value]) => value === preferred)) element.value = preferred;
 }
 
+function selectedLesson() {
+  return matrix?.lessons.find(item => item.id === lesson.value);
+}
+
+function unsignedPeople(current) {
+  return current?.roster.filter(person => !person.signed && !person.manual) ?? [];
+}
+
+function syncBulkButton() {
+  signAll.disabled = pending || unsignedPeople(selectedLesson()).length === 0;
+}
+
+function setPending(value) {
+  pending = value;
+  refresh.disabled = date.disabled = lesson.disabled = value;
+  syncBulkButton();
+}
+
 function showRoster() {
-  const current = matrix?.lessons.find(item => item.id === lesson.value);
+  const current = selectedLesson();
+  syncBulkButton();
   get('selected-course').textContent = lesson.selectedOptions[0]?.textContent ?? '—';
   roster.replaceChildren();
   if (!current) {
@@ -79,8 +99,7 @@ function showRoster() {
     button.append(detail);
     button.addEventListener('click', async () => {
       if (pending) return;
-      pending = true;
-      refresh.disabled = date.disabled = lesson.disabled = true;
+      setPending(true);
       button.setAttribute('aria-busy', 'true');
       message(demo ? '' : '正在同步腾讯表格…');
       try {
@@ -94,8 +113,7 @@ function showRoster() {
         message(error.message, true);
       } finally {
         button.removeAttribute('aria-busy');
-        pending = false;
-        refresh.disabled = date.disabled = lesson.disabled = false;
+        setPending(false);
       }
     });
     roster.append(button);
@@ -107,10 +125,35 @@ function showLessons(preferred) {
   showRoster();
 }
 
+async function signEveryone() {
+  if (pending) return;
+  const current = selectedLesson();
+  const people = unsignedPeople(current);
+  if (!people.length) return;
+
+  setPending(true);
+  let completed = 0;
+  try {
+    for (const person of people) {
+      if (!demo) {
+        message('正在同步腾讯表格 ' + completed + '/' + people.length + '…');
+        await api({lessonId: current.id, name: person.name, signed: true});
+      }
+      person.signed = true;
+      completed++;
+    }
+    message('已完成 ' + completed + ' 人签到');
+  } catch (error) {
+    message('已确认 ' + completed + '/' + people.length + ' 人。' + error.message + ' 请刷新后重试。', true);
+  } finally {
+    setPending(false);
+    showRoster();
+  }
+}
+
 async function load() {
   if (pending) return;
-  pending = true;
-  refresh.disabled = date.disabled = lesson.disabled = true;
+  setPending(true);
   message('正在读取签到情况…');
   try {
     const previous = date.value;
@@ -121,8 +164,7 @@ async function load() {
   } catch (error) {
     message(error.message, true);
   } finally {
-    pending = false;
-    refresh.disabled = date.disabled = lesson.disabled = false;
+    setPending(false);
   }
 }
 
@@ -145,6 +187,7 @@ if (demo) {
   refresh.textContent = '重置演示';
 }
 refresh.addEventListener('click', load);
+signAll.addEventListener('click', signEveryone);
 date.addEventListener('change', () => { message(''); showLessons(); });
 lesson.addEventListener('change', () => { message(''); showRoster(); });
 if (local || accessKey || demo) load();

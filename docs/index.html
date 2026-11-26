@@ -6,8 +6,8 @@
 <meta name="referrer" content="no-referrer">
 <meta name="attendance-api" content="https://1466693390-bm5hx5l4m5.ap-guangzhou.tencentscf.com">
 <title>课堂签到管理</title>
-<link rel="stylesheet" href="./style.css?v=3">
-<script src="./app.js?v=3" defer></script>
+<link rel="stylesheet" href="./style.css?v=4">
+<script src="./app.js?v=4" defer></script>
 </head>
 <body>
 <main>
@@ -24,7 +24,10 @@
     </label>
   </section>
   <section class="attendance" aria-labelledby="roster-title">
-    <div class="heading"><h2 id="roster-title">签到名单</h2><p id="counts"></p></div>
+    <div class="heading">
+      <div><h2 id="roster-title">签到名单</h2><p id="counts"></p></div>
+      <button id="sign-all" type="button" disabled>全部签到</button>
+    </div>
     <p id="feedback" role="status" aria-live="polite"></p>
     <div id="roster"></div>
   </section>
