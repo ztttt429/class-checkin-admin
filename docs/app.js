@@ -15,7 +15,7 @@ if (!local) {
   } catch {}
   if (keyFromLink) history.replaceState(null, '', location.pathname + location.search);
 }
-const demo = !local && !accessKey;
+const demo = !local && !accessKey && new URLSearchParams(location.search).get('demo') === '1';
 let matrix;
 let pending = false;
 const today = new Intl.DateTimeFormat('sv-SE', {timeZone: 'Asia/Shanghai'}).format();
@@ -126,6 +126,19 @@ async function load() {
   }
 }
 
+if (!local && !accessKey && !demo) {
+  const mode = get('mode');
+  mode.hidden = false;
+  mode.textContent = '请在手机浏览器的地址栏粘贴完整的专用管理链接。';
+  const preview = document.createElement('a');
+  preview.href = '?demo=1';
+  preview.textContent = '查看演示';
+  mode.append(' ', preview);
+  get('refresh').hidden = true;
+  document.querySelector('.panel').hidden = true;
+  document.querySelector('.attendance').hidden = true;
+}
+
 if (demo) {
   get('mode').hidden = false;
   get('mode').textContent = '演示模式 · 使用示例姓名和课次，点按可预览签到切换。';
@@ -134,4 +147,4 @@ if (demo) {
 refresh.addEventListener('click', load);
 date.addEventListener('change', () => { message(''); showLessons(); });
 lesson.addEventListener('change', () => { message(''); showRoster(); });
-load();
+if (local || accessKey || demo) load();

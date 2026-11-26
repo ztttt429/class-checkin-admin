@@ -103,3 +103,5 @@ button:disabled { cursor: wait; }
 @media (max-width: 350px) {
   #roster { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+
+[hidden] { display: none !important; }
