@@ -2,10 +2,10 @@ import {readFile} from 'node:fs/promises';
 
 const base = 'https://docs.qq.com/openapi/';
 const signedText = '已签到';
-const reportHour = 20;
+const reportTime = '19:30';
 const marker = '签到系统自动缺勤 ';
 const dateFormat = new Intl.DateTimeFormat('sv-SE', {timeZone: 'Asia/Shanghai'});
-const hourFormat = new Intl.DateTimeFormat('en-GB', {timeZone: 'Asia/Shanghai', hour: '2-digit', hourCycle: 'h23'});
+const clockFormat = new Intl.DateTimeFormat('en-GB', {timeZone: 'Asia/Shanghai', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'});
 const day = value => dateFormat.format(value);
 const richText = text => [{type: 'text', text}];
 const plain = value => Array.isArray(value) ? value.map(part => part.text || '').join('') : '';
@@ -127,13 +127,15 @@ async function readRecords(call) {
   }
 }
 
-export async function reconcile(client, {start, days = 3, now = Date.now(), dryRun = false} = {}) {
+export async function reconcile(client, {start, now = Date.now(), dryRun = false} = {}) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(start ?? '')) throw new Error('未设置自动上报的起始日期。');
   const today = day(now);
-  const earliest = day(now - (days - 1) * 86400000);
+  const weekday = new Date(today + 'T00:00:00Z').getUTCDay();
+  if (weekday === 0 || weekday === 6 || clockFormat.format(now) !== reportTime || today < start) {
+    return {lessons: 0, added: 0, removed: 0, skipped: 'outside-report-time'};
+  }
   const {students, lessons, rows} = await client.matrix();
-  const eligible = [...lessons.values()].filter(lesson => lesson.date >= start && lesson.date >= earliest &&
-    (lesson.date < today || lesson.date === today && +hourFormat.format(now) >= reportHour) && lesson.startsAt <= now);
+  const eligible = [...lessons.values()].filter(lesson => lesson.date === today && lesson.startsAt <= now);
   if (!eligible.length) return {lessons: 0, added: 0, removed: 0};
   const call = await client.destination();
   const [{getFields}, existing] = await Promise.all([call({getFields: {}}), readRecords(call)]);
